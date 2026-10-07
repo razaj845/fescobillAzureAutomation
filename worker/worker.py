@@ -41,7 +41,7 @@ STARTUP_DELAY_S   = int(os.getenv("STARTUP_DELAY",          "120"))
 POLL_INTERVAL_S   = int(os.getenv("POLL_INTERVAL",          "15"))
 HEARTBEAT_S       = int(os.getenv("HEARTBEAT_INTERVAL",     "30"))
 JOB_TIMEOUT_S     = int(os.getenv("JOB_TIMEOUT",           "3600"))
-VISIBILITY_TIMEOUT = int(os.getenv("VISIBILITY_TIMEOUT",   "7200"))  # 7 days
+VISIBILITY_TIMEOUT = int(os.getenv("VISIBILITY_TIMEOUT",   "600"))  # 10 min
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOG_FILE = PROJECT_ROOT / "logs" / "worker.log"
@@ -269,50 +269,15 @@ def main() -> None:
             result_status, result_output = run_job(job)
             is_ok = "successfully" in result_status.lower()
 
-            result_status, result_output = run_job(job)
-            is_ok = "successfully" in result_status.lower()
-
             if is_ok:
-
-                log.info(
-                    "Job %s completed successfully: %s",
-                    job_short,
-                    result_status,
-                )
-
-                if result_output:
-                    log.info(
-                        "Job %s output:\n%s",
-                        job_short,
-                        result_output,
-                    )
-
-                # Delete ONLY successful jobs.
-                delete_job(job)
-
+                log.info("Job %s completed: %s", job_short, result_status)
             else:
+                log.warning("Job %s failed: %s", job_short, result_status)
 
-                log.error(
-                    "Job %s FAILED: %s",
-                    job_short,
-                    result_status,
-                )
-
-                if result_output:
-                    log.error(
-                        "Job %s error output:\n%s",
-                        job_short,
-                        result_output,
-                    )
-
-                # IMPORTANT:
-                # Do NOT delete failed jobs.
-                #
-                # Azure will make the message visible again when
-                # the visibility timeout expires.
-
+            # Delete from queue — job is done (result was sent to Telegram by the automation script)
+            delete_job(job)
             current_job      = None
-            last_heartbeat_t = time.time()
+            last_heartbeat_t = time.time()   # reset after completing a job
 
     except KeyboardInterrupt:
         log.info("Shutting down…")
