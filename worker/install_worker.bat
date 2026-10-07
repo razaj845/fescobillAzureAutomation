@@ -1,54 +1,121 @@
+```bat
 @echo off
-REM install_worker.bat — Run ONCE on each PC after filling in worker\worker.env
-setlocal EnableDelayedExpansion
+setlocal
 
-cd /d "%~dp0.."
-set "PROJECT=%CD%"
-set "WORKER_SCRIPT=%PROJECT%\worker\worker.py"
-set "WORKER_ENV=%PROJECT%\worker\worker.env"
+REM ============================================================
+REM FESCO BILL WORKER - MAXIMUM RELIABILITY TASK
+REM ============================================================
 
-echo ═══════════════════════════════════════════════════════════
-echo   FESCO Bill Worker -- PC Setup
-echo   Project: %PROJECT%
-echo ═══════════════════════════════════════════════════════════
+set "TASK_NAME=FESCO Bill Worker"
+set "PROJECT_DIR=C:\Users\RJM\Videos\fescobill"
+set "LAUNCHER=%PROJECT_DIR%\worker\worker_launcher.bat"
+
+echo.
+echo ============================================================
+echo FESCO BILL WORKER - INSTALL / REPAIR
+echo ============================================================
 echo.
 
-if not exist "%WORKER_ENV%" (
-    echo ERROR: worker\worker.env not found.
-    echo   Copy worker\worker.env.example to worker\worker.env
-    echo   then fill in AZURE_STORAGE_CONNECTION_STRING and WORKER_NAME.
+if not exist "%LAUNCHER%" (
+    echo ERROR: Launcher not found:
+    echo %LAUNCHER%
     echo.
     pause
     exit /b 1
 )
 
-set "PYTHON=python"
-if exist "%PROJECT%\.venv\Scripts\python.exe" (
-    set "PYTHON=%PROJECT%\.venv\Scripts\python.exe"
-    echo Using virtual environment: !PYTHON!
-) else (
-    echo Using system Python
+REM ------------------------------------------------------------
+REM Remove existing task
+REM ------------------------------------------------------------
+
+echo Removing existing task...
+
+schtasks /delete /tn "%TASK_NAME%" /f >nul 2>&1
+
+REM ------------------------------------------------------------
+REM Create task at Windows startup
+REM ------------------------------------------------------------
+
+echo Creating SYSTEM startup task...
+
+schtasks /create ^
+ /tn "%TASK_NAME%" ^
+ /tr "\"%LAUNCHER%\"" ^
+ /sc onstart ^
+ /ru SYSTEM ^
+ /rl HIGHEST ^
+ /f
+
+if errorlevel 1 (
+    echo.
+    echo ERROR: Task creation failed.
+    echo.
+    echo Run this file as Administrator.
+    echo.
+    pause
+    exit /b 1
+)
+
+REM ------------------------------------------------------------
+REM Configure maximum reliability
+REM ------------------------------------------------------------
+
+echo.
+echo Applying reliability settings...
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ^
+ "$t = Get-ScheduledTask -TaskName '%TASK_NAME%';" ^
+ "$t.Settings.ExecutionTimeLimit = 'PT0S';" ^
+ "$t.Settings.IdleSettings.StopOnIdleEnd = $false;" ^
+ "$t.Settings.IdleSettings.RestartOnIdle = $false;" ^
+ "$t.Settings.DisallowStartIfOnBatteries = $false;" ^
+ "$t.Settings.StopIfGoingOnBatteries = $false;" ^
+ "$t.Settings.MultipleInstances = 'IgnoreNew';" ^
+ "$t.Settings.RestartCount = 999999;" ^
+ "$t.Settings.RestartInterval = 'PT1M';" ^
+ "$t | Set-ScheduledTask"
+
+if errorlevel 1 (
+    echo.
+    echo WARNING: Some reliability settings could not be applied.
+)
+
+REM ------------------------------------------------------------
+REM Start immediately
+REM ------------------------------------------------------------
+
+echo.
+echo Starting worker...
+
+schtasks /run /tn "%TASK_NAME%"
+
+if errorlevel 1 (
+    echo.
+    echo WARNING: Could not start immediately.
 )
 
 echo.
-echo [1/3] Installing Azure Storage packages...
-"%PYTHON%" -m pip install --quiet azure-storage-queue==12.12.0 azure-data-tables==12.5.0
-if %errorlevel% neq 0 ( echo ERROR: pip install failed. & pause & exit /b 1 )
-echo   Done.
+echo ============================================================
+echo INSTALLATION COMPLETE
+echo ============================================================
+echo.
+echo Worker:
+echo   %PROJECT_DIR%\worker\worker.py
+echo.
+echo Startup:
+echo   Windows boot - before login
+echo.
+echo Account:
+echo   SYSTEM
+echo.
+echo Battery:
+echo   Worker continues on battery
+echo.
+echo Execution limit:
+echo   None
+echo.
+echo ============================================================
+echo.
 
-echo.
-echo [2/3] Creating scheduled task "FescoBillWorker"...
-schtasks /delete /tn "FescoBillWorker" /f >nul 2>&1
-schtasks /create /tn "FescoBillWorker" /tr "\"%PYTHON%\" \"%WORKER_SCRIPT%\"" /sc ONLOGON /delay 0002:00 /ru "%USERDOMAIN%\%USERNAME%" /rl HIGHEST /f
-if %errorlevel% neq 0 ( echo ERROR: Run as Administrator. & pause & exit /b 1 )
-echo   Task created. Worker starts 2 min after every login.
-
-echo.
-echo [3/3] Starting worker now...
-start "" /min "%PYTHON%" "%WORKER_SCRIPT%"
-
-echo.
-echo   Done. Check logs\worker.log to confirm it connected.
-echo   On Telegram you will see: "Worker 'PC-Office' came online."
-echo.
 pause
+```

@@ -24,3 +24,27 @@ venv/
 .env
 *.png
 *.zip
+
+*.xml
+
+# Secrets
+worker/worker.env
+.env
+
+# Local Python environment
+.venv/
+
+# Local runtime data
+logs/
+data/
+
+# Secrets
+worker/worker.env
+.env
+
+# Local Python environment
+.venv/
+
+# Local runtime data
+logs/
+data/
