@@ -19,7 +19,7 @@ import logging
 import sqlite3
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
@@ -42,8 +42,9 @@ def init(path: Path) -> None:
 
 
 def _open() -> sqlite3.Connection:
-    conn = sqlite3.connect(str(_db_path), check_same_thread=False, timeout=15)
-    conn.execute("PRAGMA journal_mode=WAL")
+    conn = sqlite3.connect(str(_db_path), check_same_thread=False, timeout=30)
+    conn.execute("PRAGMA journal_mode=DELETE")
+    conn.execute("PRAGMA busy_timeout=30000")
     conn.execute("PRAGMA foreign_keys=ON")
     conn.row_factory = sqlite3.Row
     return conn
