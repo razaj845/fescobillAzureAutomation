@@ -41,7 +41,7 @@ STARTUP_DELAY_S   = int(os.getenv("STARTUP_DELAY",          "120"))
 POLL_INTERVAL_S   = int(os.getenv("POLL_INTERVAL",          "15"))
 HEARTBEAT_S       = int(os.getenv("HEARTBEAT_INTERVAL",     "30"))
 JOB_TIMEOUT_S     = int(os.getenv("JOB_TIMEOUT",           "3600"))
-VISIBILITY_TIMEOUT = int(os.getenv("VISIBILITY_TIMEOUT",   "600"))  # 10 min
+VISIBILITY_TIMEOUT = int(os.getenv("VISIBILITY_TIMEOUT",   "7200"))  # 7 days
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOG_FILE = PROJECT_ROOT / "logs" / "worker.log"
