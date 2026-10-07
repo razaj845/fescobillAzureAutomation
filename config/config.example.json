@@ -1,0 +1,37 @@
+{
+  "_help": "Each recipient is either a plain string (default content) or an object with a 'send' list: text = summary message, png = bill image, pdf = bill PDF. Add \"enabled\": false to pause a person. Defaults: email = text+png+pdf, telegram = text+png, whatsapp = text.",
+  "default_whatsapp_region": "PK",
+  "delivery_defaults": {
+    "telegram": ["text", "png"]
+  },
+  "bills": [
+    {
+      "reference_no": "12345678901234",
+      "label": "Home - Name",
+      "search_by": "refno",
+      "recipients": {
+        "emails": [
+          "family1@example.com",
+          { "address": "family2@example.com", "send": ["pdf"] },
+          { "address": "paused@example.com", "enabled": false }
+        ],
+        "telegram_chat_ids": [
+          "81xxxxxxxxx",
+          { "chat_id": "897xxxxxxxxxxx", "send": ["text"] }
+        ],
+        "whatsapp_numbers": [
+          "9233xxxxxxxx",
+          { "number": "9230xxxxxxxx", "send": ["text", "pdf"] }
+        ]
+      }
+    },
+    {
+      "reference_no": "12345678901235",
+      "label": "Shop",
+      "search_by": "refno",
+      "recipients": {
+        "emails": ["accounts@example.com"]
+      }
+    }
+  ]
+}

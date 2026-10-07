@@ -1,0 +1,4 @@
+# Extra packages the PC worker needs (install on each PC)
+# These are in addition to the main project requirements (Playwright, pyTelegramBotAPI etc.)
+azure-storage-queue==12.12.0
+azure-data-tables==12.5.0

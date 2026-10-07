@@ -1,0 +1,26 @@
+
+# Secrets and personal data - NEVER commit these
+config.json
+access.json
+usage.json
+saved_refs.json
+state.json
+bill_history.json
+
+# Runtime output
+bills/
+*.log
+*.log.*
+*.lock
+*.tmp
+activity.log*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.env
+*.png
+*.zip

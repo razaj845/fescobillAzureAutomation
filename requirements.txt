@@ -1,0 +1,5 @@
+playwright>=1.44
+python-dotenv>=1.0
+requests>=2.31
+phonenumbers>=8.13
+pyTelegramBotAPI>=4.14

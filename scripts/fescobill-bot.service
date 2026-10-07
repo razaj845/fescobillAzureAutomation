@@ -1,0 +1,51 @@
+# FESCO Bill Bot — Telegram listener (systemd service)
+#
+# SETUP (run as root):
+#   1. Edit WorkingDirectory and ExecStart to match your install path.
+#   2. Edit User= to your actual Linux user.
+#   3. sudo cp fescobill-bot.service /etc/systemd/system/
+#   4. sudo systemctl daemon-reload
+#   5. sudo systemctl enable --now fescobill-bot
+#
+# Useful commands:
+#   sudo systemctl status  fescobill-bot
+#   sudo systemctl restart fescobill-bot
+#   sudo journalctl -fu    fescobill-bot   (live log)
+
+[Unit]
+Description=FESCO Bill Bot (Telegram)
+Documentation=https://github.com/youruser/fescobill
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=YOUR_LINUX_USER
+Group=YOUR_LINUX_USER
+
+# ── Change this to your actual project directory ──────────────────────────
+WorkingDirectory=/opt/fescobill
+
+# Use the virtual-env Python if you have one, otherwise system Python
+ExecStart=/opt/fescobill/.venv/bin/python src/bot_listener.py
+# ExecStart=/usr/bin/python3 src/bot_listener.py
+
+Restart=always
+RestartSec=10
+
+# Give the bot a moment to shut down gracefully before SIGKILL
+TimeoutStopSec=15
+
+# Keep logs tidy
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=fescobill-bot
+
+# Security hardening (optional but recommended)
+NoNewPrivileges=true
+PrivateTmp=true
+
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

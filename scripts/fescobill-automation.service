@@ -1,0 +1,34 @@
+# FESCO Bill Automation — one-shot fetch triggered by fescobill-automation.timer
+#
+# This service runs fesco_bill_automation.py once, then exits.
+# The companion .timer file decides when it runs.
+#
+# NOTE: If you prefer the bot to handle scheduling instead (via BILL_CHECK_HOUR
+#       in .env), you do NOT need this service or its timer — the bot's built-in
+#       scheduler will trigger runs automatically every day at the configured hour.
+#
+# SETUP (only if you want cron-style scheduling independent of the bot):
+#   sudo cp fescobill-automation.service fescobill-automation.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now fescobill-automation.timer
+
+[Unit]
+Description=FESCO Bill Automation (fetch + notify)
+Documentation=https://github.com/youruser/fescobill
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=YOUR_LINUX_USER
+Group=YOUR_LINUX_USER
+
+WorkingDirectory=/opt/fescobill
+
+ExecStart=/opt/fescobill/.venv/bin/python src/fesco_bill_automation.py
+# ExecStart=/usr/bin/python3 src/fesco_bill_automation.py
+
+StandardOutput=append:/opt/fescobill/logs/fesco_bill_automation.log
+StandardError=append:/opt/fescobill/logs/fesco_bill_automation.log
+
+Environment=PYTHONUNBUFFERED=1

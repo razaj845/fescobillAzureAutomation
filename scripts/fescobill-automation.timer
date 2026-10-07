@@ -1,0 +1,16 @@
+# FESCO Bill Automation — daily timer
+#
+# Runs fescobill-automation.service every day at 08:00 local time.
+# Change OnCalendar= to any time you prefer (e.g. *-*-* 07:30:00).
+# After a reboot, if the last run was missed, systemd will fire it within 5 min.
+
+[Unit]
+Description=FESCO Bill Automation — daily trigger
+
+[Timer]
+OnCalendar=*-*-* 08:00:00
+AccuracySec=1min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
