@@ -510,7 +510,7 @@ def format_script_output(output: str, successful: bool) -> str:
 # --------------------------------------------------------------------------- #
 # Job queue
 # --------------------------------------------------------------------------- #
-job_queue     = queue.Queue()
+local_job_queue = queue.Queue()
 state_lock    = threading.Lock()
 waiting_jobs: list = []
 current_job         = None
@@ -615,7 +615,7 @@ def run_job(job: Job):
 def worker() -> None:
     global current_job, last_finished
     while True:
-        job = job_queue.get()
+        job = local_job_queue.get()
         with state_lock:
             if job in waiting_jobs: waiting_jobs.remove(job)
             if job.cancelled: continue
@@ -650,7 +650,7 @@ def worker() -> None:
             with state_lock:
                 current_job   = None
                 last_finished = {"job": job, "status": status_msg, "at": time.time()}
-            job_queue.task_done()
+            local_job_queue.task_done()
 
 
 def _notify_subscribers(status_msg: str, output_content: str, triggering_chat: int) -> None:
@@ -666,7 +666,7 @@ def enqueue(job: Job) -> None:
     with state_lock:
         ahead = len(waiting_jobs) + (1 if current_job else 0)
         waiting_jobs.append(job)
-    job_queue.put(job)
+    local_job_queue.put(job)
     if ahead:
         job.queued_msg = msg_ref_of(
             safe_send(job.chat_id, f"⏳ Queued. {ahead} job(s) ahead – will start automatically.",
