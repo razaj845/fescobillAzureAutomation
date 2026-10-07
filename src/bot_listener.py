@@ -74,7 +74,7 @@ BILL_CHECK_HOUR: int | None = int(_ch) if _ch.isdigit() and 0 <= int(_ch) <= 23 
 
 DIRECT_API_URL = "https://api.telegram.org/bot{0}/{1}"
 WORKER_API_URL = f"{WORKER_URL}/bot{{0}}/{{1}}" if WORKER_URL else DIRECT_API_URL
-CONFIG_PATH    = PROJECT_ROOT / "config" / "config.json"
+CONFIG_PATH    = Path(os.getenv("BOT_CONFIG_FILE", str(PROJECT_ROOT / "config" / "config.json")))
 
 
 def parse_id_list(env_name: str) -> list[int]:
